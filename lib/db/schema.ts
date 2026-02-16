@@ -1,5 +1,6 @@
 import {
   pgTable,
+  pgEnum,
   serial,
   varchar,
   text,
@@ -72,6 +73,7 @@ export const teamsRelations = relations(teams, ({ many }) => ({
   teamMembers: many(teamMembers),
   activityLogs: many(activityLogs),
   invitations: many(invitations),
+  campaigns: many(campaigns),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -140,3 +142,39 @@ export enum ActivityType {
   INVITE_TEAM_MEMBER = 'INVITE_TEAM_MEMBER',
   ACCEPT_INVITATION = 'ACCEPT_INVITATION',
 }
+
+export const campaignStatusEnum = pgEnum("campaign_status", [
+  "draft",
+  "active",
+  "completed",
+]);
+
+export const campaigns = pgTable("campaigns", {
+  id: serial("id").primaryKey(),
+
+  teamId: integer("team_id")
+      .notNull()
+      .references(() => teams.id, {
+        onDelete: "cascade",
+      }),
+
+  name: varchar("name", { length: 100 }).notNull(),
+
+  status: campaignStatusEnum("status").notNull(),
+
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  })
+      .defaultNow()
+      .notNull(),
+});
+
+export const campaignsRelations = relations(
+    campaigns,
+    ({ one }) => ({
+      team: one(teams, {
+        fields: [campaigns.teamId],
+        references: [teams.id],
+      }),
+    })
+);

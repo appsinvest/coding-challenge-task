@@ -1,6 +1,6 @@
 import { desc, and, eq, isNull } from 'drizzle-orm';
 import { db } from './drizzle';
-import { activityLogs, teamMembers, teams, users } from './schema';
+import {activityLogs, campaigns, teamMembers, teams, users} from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
 
@@ -66,14 +66,16 @@ export async function updateTeamSubscription(
 
 export async function getUserWithTeam(userId: number) {
   const result = await db
-    .select({
-      user: users,
-      teamId: teamMembers.teamId
-    })
-    .from(users)
-    .leftJoin(teamMembers, eq(users.id, teamMembers.userId))
-    .where(eq(users.id, userId))
-    .limit(1);
+      .select({
+        user: users,
+        teamId: teamMembers.teamId,
+        team: teams,
+      })
+      .from(users)
+      .leftJoin(teamMembers, eq(users.id, teamMembers.userId))
+      .leftJoin(teams, eq(teamMembers.teamId, teams.id))
+      .where(eq(users.id, userId))
+      .limit(1);
 
   return result[0];
 }
@@ -125,4 +127,22 @@ export async function getTeamForUser() {
   });
 
   return result?.team || null;
+}
+
+export type Campaign = typeof campaigns.$inferSelect;
+
+export async function getCampaignsByUserTeam() {
+  const user = await getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const userWithTeam = await getUserWithTeam(user.id)
+  if (!userWithTeam?.team) return []
+
+  const teamCampaigns = await db
+      .select()
+      .from(campaigns)
+      .where(eq(campaigns.teamId, userWithTeam.team.id))
+      .orderBy(desc(campaigns.createdAt))
+
+  return teamCampaigns
 }

@@ -55,3 +55,59 @@ Implement a **Campaign** (or "Project") entity that belongs to a **team**. Logge
 - Working create + list (and optionally update status) with a clear, understandable UI.
 
 ---
+# Database Migrations
+
+This project uses [Drizzle ORM](https://orm.drizzle.team) for database management. Follow these steps to run migrations:
+
+## Setup
+
+Ensure your `DATABASE_URL` environment variable is set in `.env`.
+
+## Commands
+
+### Generate a migration
+After modifying the schema in `lib/db/schema.ts`, generate a new migration file:
+```bash
+npx drizzle-kit generate
+```
+
+### Apply migrations
+Run all pending migrations to update your database:
+
+```bash
+npx drizzle-kit migrate
+```
+
+### Migration files
+Generated migration files are stored in the drizzle folder. Commit them to repository.
+
+
+# Using the Campaigns Section
+
+The Campaigns section helps you manage your team's marketing campaigns. You can view, create, and update campaign statuses directly from the dashboard.
+
+## Location
+
+Navigate to your **Dashboard** (`/dashboard/campaigns`). The Campaigns card is displayed below the team and subscription sections.
+
+## Features
+
+### View Campaigns
+- All campaigns belonging to your team are listed in a table.
+- Each row shows the campaign **name**, current **status**, and **creation date**.
+- Campaigns are ordered newest first.
+
+### Create a Campaign
+- Use the form at the top of the Campaigns card.
+- Enter a **name** (required) and optionally select an initial **status** (default is `draft`).
+- Click **"Create Campaign"**. The new campaign will appear in the list immediately.
+
+### Update Campaign Status
+- Each campaign row includes a status dropdown.
+- Click the dropdown and select a new status: `draft`, `active` or `completed`.
+- The change is saved automatically, and the list refreshes.
+
+### Empty State
+- If your team has no campaigns yet, you'll see a friendly message and the creation form ready for your first campaign.
+
+All actions are secure: you can only view and modify campaigns belonging to your own team.
